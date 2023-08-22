@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>大樹飯館</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-image: url('1.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        .content-box {
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 36px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #excludedList {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        /* 媒體查詢：螢幕小於 600px */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content-box">
+        <h1>大樹飯館</h1>
+        <h3>歡迎來到大樹飯館，這餐想要吃什麼？</h3>
+        <h4>大樹：記得保持健康飲食哦！</h4>
+        <button id="randomButton">隨機選擇</button>
+        <button id="excludeButton">排除選項</button>
+        <button id="undoExcludeButton">回復排除</button>
+        <h2><p id="result"></p></h2>
+        <p id="excludedList"></p>
+    </div>
+
+
+    <script>
+const allFoods = [
+    "披薩", "漢堡", "拉麵", "壽司", "沙拉", 
+    "炸雞", "火鍋", "鍋貼", "牛排", "咖哩飯",
+    "義大利麵", "烤雞", "滷肉飯", "麻辣燙", "蛋包飯",
+    "薯條", "三明治", "烤肉", "雞肉飯", "冰淇淋",
+    "甜甜圈", "壽喜燒", "炒飯", "鐵板燒", "涼麵",
+    "烏龍麵", "煎餃", "肉圓", "肉羹麵", "湯包",
+    "海鮮粥", "清燉牛肉麵", "蔥抓餅", "豬腳飯", "關東煮",
+    "韓式燒肉", "粢飯糰", "臭豆腐", "章魚燒", "雞排",
+    "水餃", "石鍋拌飯", "炸豬排", "扁食", "鴨肉飯",
+    "蚵仔煎", "大腸包小腸", "鴨血糕", "肉包", "花生酥",
+    "蔥油餅", "臭臭鍋", "螺肉", "燒賣", "紅燒肉",
+    "青椒肉絲", "鹽酥雞", "鳳梨酥", "米粉湯", "魚丸湯",
+    "蚵仔麵線", "鳳梨包", "碗粿", "棺材板", "貢丸湯",
+    "控肉飯", "高麗菜炒肉", "羊肉爐", "涼拌麵", "牛肉麵線",
+    "牛肉湯", "刈包", "雞肉捲餅", "蔥花餅", "蜜糖薯條",
+    "潤餅", "香雞排", "黑輪", "鍋燒意麵", "金針菇鍋",
+    "叉燒飯", "燒肉飯", "泡菜鍋", "烏龍麵", "綜合湯",
+    "魷魚羹", "擔仔麵", "肉脯", "黃金炸雞", "花枝炸",
+    "花枝羹", "牛肉薄片鍋", "胡椒餅", "炸彈蔥抓餅", "杏鮑菇鍋",
+    "鮭魚飯", "烤肉飯", "魚排", "紅豆餅", "米糕",
+    "牛舌飯", "甜不辣", "糯米雞", "章魚小丸子", "爌肉飯",
+    "燒烤", "雞肉炒麵", "泡麵", "牛腩麵", "鴨肉麵",
+    "臭豆腐", "炒牛肉", "焢肉飯", "排骨飯", "糖醋排骨",
+    "米糕湯", "鱔魚麵線", "蚵仔麵線", "滷雞飯", "肉鬆",
+    "咖啡牛奶麵包", "蛋餅", "韭菜盒子", "牛肉麵糰", "炒年糕",
+    "湯圓", "饅頭", "豬腳麵線", "雞湯麵", "白粥",
+    "拿破崙", "法式吐司", "吐司", "花生牛奶", "燉蛋",
+    "炒麵", "各式點心", "奶茶", "腿庫", "起司年糕",
+    "各式餃子", "壽司", "各式水果", "各式甜點", "果汁",
+    "煎魚", "奶酪蛋糕", "牛奶燉蛋", "酪梨沙拉", "奶茶布丁",
+    "果凍", "西餐", "日式料理", "中式料理", "韓式料理",
+    "義大利料理", "墨西哥料理", "泰式料理", "越南料理", "印度料理",
+    "印尼炒飯", "印尼沙爹", "義大利海鮮麵", "葡國雞", "西班牙海鮮飯",
+    "墨西哥捲餅", "阿根廷烤肉", "巴西烤肉", "英國肉餡餅", "俄羅斯魚子醬",
+    "土耳其烤肉", "希臘沙拉", "印度咖哩", "泰式咖哩蟹", "馬來西亞椰奶飯",
+    "越南春捲", "菲律賓燒豬", "韓國泡菜煎餅", "日本天婦羅", "臺灣臭豆腐",
+    "川菜麻婆豆腐", "粵菜燒賣", "湖南臘肉", "新疆羊肉串", "蒙古烤肉",
+    "西藏酥油茶", "內蒙古手扒肉", "雲南過橋米線", "紅燒牛肉麵", "北京烤鴨",
+    "澳洲肉餡餅", "紐西蘭奶酪", "南非乾肉", "摩洛哥薄餅", "埃及法拉夫",
+    "以色列沙拉", "伊朗炖飯", "阿拉伯餅", "古巴三明治", "加勒比海烤魚",
+    "秘魯烤雞", "智利海鮮湯", "加拿大楓糖煎餅", "美國熱狗", "墨西哥餅",
+    "巴哈馬果汁", "哥倫比亞咖啡", "委內瑞拉燉飯", "玻利維亞鹽焗魚", "巴西燒烤",
+    "阿根廷燒牛肉", "智利烤羊肉", "烏拉圭牛排", "秘魯魚生", "巴拿馬炒飯",
+    "捷克涼拌麵", "芬蘭咖哩咖哩魚", "冰島熱狗", "荷蘭炸魚", "挪威三明治",
+    "俄羅斯雪糕", "瑞典肉丸", "瑞士芝士火鍋", "土耳其甜點", "奧地利馬鈴薯糕",
+    "印度尼西亞糕點", "新加坡辣蟹", "巴基斯坦奶茶", "阿富汗羊肉湯", "哈薩克烤羊排",
+    "吉爾吉斯斯坦餃子", "烏茲別克抓餡餅", "塔吉克水果沙拉", "土庫曼羊肉餃", "亞美尼亞肉餡餅",
+    "阿塞拜疆烤羊肉", "格魯吉亞果仁餅", "蒙古乳酪", "斯里蘭卡咖哩", "不丹燒豬",
+    "尼泊爾過橋米線", "馬爾地夫椰子飯", "巴林魚湯", "黎巴嫩烤肉", "敘利亞羊肉串",
+    "伊拉克烤肉", "伊朗羊肉湯", "以色列捲餅", "約旦烤羊肉", "科威特肉串",
+    "沙烏地阿拉伯米飯", "阿拉伯海鮮湯", "阿聯酋咖哩", "伊朗濃湯", "以色列濃湯",
+    "約旦濃湯", "阿拉伯濃湯", "葉門濃湯", "巴林濃湯", "科威特濃湯",
+    "阿曼濃湯", "卡塔爾濃湯", "阿富汗濃湯", "索馬里咖哩", "馬達加斯加烤肉",
+    "馬拉威豆湯", "摩洛哥濃湯", "納米比亞燉肉", "南非烤肉", "斯威士蘭馬鈴薯餅",
+    "索馬利亞炖肉", "坦桑尼亞烤肉", "莫桑比克魚湯", "津巴布韋豆湯", "博茨瓦納烤肉",
+    "肯尼亞炒飯", "烏干達煮牛肉", "盧旺達醃肉", "布隆迪蘋果餅", "蘇丹糕點",
+    "法式吐司", "煎蛋三明治", "燒餅油條", "饅頭油條", "豆漿油條",
+    "臭豆腐火鍋", "蛋餅", "蛋餅", "牛奶麵包", "鮪魚三明治",
+    "米漢堡", "蘋果派", "鳳梨酥", "潤餅", "水煎包",
+    "豆沙包", "牛奶吐司", "饅頭", "包子", "餃子",
+    "銅板價早餐", "鍋燒意麵", "蔥蛋餅", "紅豆餅", "蘿蔔糕",
+    "蔥油餅", "花生糕", "米漿", "蔥花餅", "鹹豆漿",
+    "粢飯糰", "豆漿", "腸粉", "油條粥", "韭菜盒子",
+    "麥片", "水果沙拉", "酸奶", "吐司",
+    "各式果汁", "鳳梨包", "鳳梨酥", "米糕", "海苔包飯",
+    "湯圓", "稀飯", "滿漢大餐", "蔥抓餅", 
+];
+
+        let remainingFoods = [...allFoods];
+        let excludedFoods = [];
+
+        const randomButton = document.getElementById("randomButton");
+        const excludeButton = document.getElementById("excludeButton");
+        const undoExcludeButton = document.getElementById("undoExcludeButton");
+        const resultElement = document.getElementById("result");
+        const excludedListElement = document.getElementById("excludedList");
+
+        randomButton.addEventListener("click", function() {
+            if (remainingFoods.length === 0) {
+                if (excludedFoods.length === 0) {
+                    resultElement.textContent = "沒有可供選擇的食物！";
+                } else {
+                    resultElement.textContent = "所有選項都已排除，重置所有選項。";
+                    remainingFoods = [...allFoods];
+                    excludedFoods = [];
+                    updateExcludedList();
+                }
+            } else {
+                const randomIndex = Math.floor(Math.random() * remainingFoods.length);
+                const randomFood = remainingFoods[randomIndex];
+                resultElement.textContent = "推薦：" + randomFood;
+            }
+        });
+
+        excludeButton.addEventListener("click", function() {
+            if (remainingFoods.length === 0) {
+                resultElement.textContent = "所有選項都已排除，不能再排除了。";
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * remainingFoods.length);
+            const excludedFood = remainingFoods.splice(randomIndex, 1);
+            excludedFoods.push(excludedFood);
+            updateExcludedList();
+            resultElement.textContent = "已排除：" + excludedFood;
+        });
+
+        undoExcludeButton.addEventListener("click", function() {
+            if (excludedFoods.length === 0) {
+                resultElement.textContent = "沒有排除的選項可以回復。";
+                return;
+            }
+
+            const lastExcluded = excludedFoods.pop();
+            remainingFoods.push(lastExcluded);
+            updateExcludedList();
+            resultElement.textContent = "已回復：" + lastExcluded;
+        });
+
+        function updateExcludedList() {
+            if (excludedFoods.length === 0) {
+                excludedListElement.textContent = "目前沒有排除的選項。";
+            } else {
+                excludedListElement.textContent = "排除的選項：" + excludedFoods.join(", ");
+            }
+        }
+    </script>
+</body>
+</html>
